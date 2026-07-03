@@ -542,6 +542,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "cv" },
     { name = "mediapipe" },
+    { name = "numpy" },
     { name = "opencv-python" },
 ]
 
@@ -554,6 +555,7 @@ dev = [
 requires-dist = [
     { name = "cv", specifier = ">=1.0.0" },
     { name = "mediapipe", specifier = ">=0.10.33" },
+    { name = "numpy", specifier = ">=2.4.4" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
 ]
 

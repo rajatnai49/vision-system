@@ -10,7 +10,7 @@ class HardSmoother:
     def update(self, looking_away:bool) -> bool:
         self.buffer.append(looking_away)
 
-        if len(self.buffer) > self.window_size:
+        if len(self.buffer) < self.window_size:
             return False
 
         avg = sum(self.buffer) / len(self.buffer)

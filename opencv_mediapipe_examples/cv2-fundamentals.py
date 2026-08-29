@@ -46,7 +46,7 @@ while True:
     fps = 0
 
     if elapsed > 0:
-        fps = int(counter/elapsed)
+        fps = int(counter / elapsed)
 
     # cv2.rectangle(frame, (100, 100), (300, 300), (0, 255, 0), 2)
 
@@ -127,4 +127,3 @@ cv2.destroyAllWindows()
 #         break
 
 # cv2.destroyAllWindows()
-

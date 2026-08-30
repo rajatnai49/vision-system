@@ -1,39 +1,18 @@
 import cv2
 import pyvirtualcam
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from HandTrackerModule import handDetector
 
 import mediapipe as mp
-
-from mediapipe.tasks.python.vision.hand_landmarker import (
-    HandLandmarkerOptions,
-    HandLandmarkerResult,
-)
-
-BaseOptions = mp.tasks.BaseOptions
-HandMarker = mp.tasks.vision.HandLandmarker
-HandMarkerResult = mp.tasks.vision.HandLandmarkerResult
-RunningMode = mp.tasks.vision.RunningMode
-
-model_path = "/home/rajatnai49/projects/vision-system/hand_landmarker.task"
-
-
-def landmarker_result_callback(
-    result: HandLandmarkerResult,
-    output_img: mp.Image,
-    timestamp_ms: int,
-):
-    print(f"hand marker result: {result}")
-
-
-handmarker_options = HandLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=model_path),
-    running_mode=RunningMode.LIVE_STREAM,
-    result_callback=landmarker_result_callback,
-)
+import time
 
 EXPECTED_WIDTH = 1280
 EXPECTED_HEIGHT = 720
 
-cap = cv2.VideoCapture("/dev/video0", cv2.CAP_V4L2)
+cap = cv2.VideoCapture("/dev/video2", cv2.CAP_V4L2)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, EXPECTED_WIDTH)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, EXPECTED_HEIGHT)
@@ -54,6 +33,8 @@ if actual_w != EXPECTED_WIDTH or actual_h != EXPECTED_HEIGHT:
 cv2.namedWindow("preview", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("preview", 800, 600)
 
+detector = handDetector()
+
 with pyvirtualcam.Camera(height=720, width=1280, fps=30, device="/dev/video3") as cam:
     print(f"virtual camera running: {cam.device}")
     while True:
@@ -63,21 +44,27 @@ with pyvirtualcam.Camera(height=720, width=1280, fps=30, device="/dev/video3") a
             break
         frame = cv2.flip(frame, 1)
 
-        cv2.putText(
-            frame,
-            "GestureLens",
-            (5, 5),
-            cv2.FONT_HERSHEY_COMPLEX,
-            1,
-            (0, 255, 0),
-            2,
-            cv2.LINE_AA,
-        )
+
+        # cv2.putText(
+        #     frame,
+        #     "GestureLens",
+        #     (5, 5),
+        #     cv2.FONT_HERSHEY_COMPLEX,
+        #     1,
+        #     (0, 255, 0),
+        #     2,
+        #     cv2.LINE_AA,
+        # )
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+        ts = int(time.time() * 1000)
 
-        cam.send(rgb_frame)
-        cam.sleep_until_next_frame()
+        detector.landmarker.detect_async(mp_image, ts)
+        img = detector.findHands(frame)
+
+        # cam.send(rgb_frame)
+        # cam.sleep_until_next_frame()
 
         cv2.imshow("preview", frame)
 
